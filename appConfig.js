@@ -2,5 +2,5 @@ import React, {Component} from 'react';
 import {AsyncStorage} from 'react-native';
   
 
-export const _api = "192.168.100.193";
+export const _api = "192.168.43.152";
  

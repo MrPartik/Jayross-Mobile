@@ -16,7 +16,8 @@ import {
   FlatList,
   Modal,
   KeyboardAvoidingView,
-  Alert
+  Alert,
+  Picker
 } from 'react-native';
 
 import {
@@ -43,9 +44,12 @@ class screenRequestSetQty extends Component{
             ,checkboxes: []
             ,modalVisible:false 
             ,item:[]
+            ,supplierData:[]
           }; 
     }
     async componentDidMount(){ 
+      
+      this._getSupplier();
       this.setState({
           userid: await AsyncStorage.getItem('userid')
           ,username: await AsyncStorage.getItem('username')
@@ -53,10 +57,12 @@ class screenRequestSetQty extends Component{
           ,userrole: await AsyncStorage.getItem('userrole')
           ,fixedcheckboxes:this.props.navigation.getParam('items').map(x => {
             x['qty'] = 0;
+            x['suppid'] = 0;
             return x;
           })
           ,checkboxes:this.props.navigation.getParam('items').map(x => {
             x['qty'] = 0;
+            x['suppid'] = 0;
             return x;
           })
       })
@@ -65,9 +71,11 @@ class screenRequestSetQty extends Component{
   setModalVisible(visible,item) {
     this.setState({modalVisible: visible,item});
   }
+  
+  
 
   
-  _updateCheck = (item,qty) =>{
+  _updateCheck = (item,qty,suppid) =>{
     this.setState(state => {
       const index = state.checkboxes.findIndex(
         x => x.STOCK_ID === item.STOCK_ID
@@ -94,7 +102,8 @@ class screenRequestSetQty extends Component{
             , SUP_ADDRESS: item.SUP_ADDRESS
             , isCritical: item.isCritical
             , value: true
-            , qty: qty},
+            , qty: qty
+            , suppid: suppid},
           ...state.checkboxes.slice(index+1),
         ],
         fixedcheckboxes: [
@@ -115,12 +124,55 @@ class screenRequestSetQty extends Component{
             , SUP_ADDRESS: item.SUP_ADDRESS
             , isCritical: item.isCritical
             , value: true
-            , qty: qty},
+            , qty: qty
+            , suppid: suppid},
           ...state.fixedcheckboxes.slice(index2+1),
         ],
       };
     },
     ) 
+  }
+  
+  _getSupplier = () =>{ 
+    this.setState({refreshing: true}); 
+    fetch('http://'+appConfig._api+'/ims/SupplierList.php')
+      .then((response) => response.json())
+      .then((responseJson) => { 
+        this.setState({
+          refreshing: false,
+          supplierData: responseJson, 
+        }, function() {
+          // In this block you can do something with new state.
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  } 
+  insertReq = () => {
+    fetch('http://'+appConfig._api+'/ims/addRequests.php',{
+      method:'post'
+      ,headers:{
+          'Accept':'application/json'
+          ,'Content-Type':'application/json'
+      }
+      ,body:JSON.stringify({
+          data: this.state.checkboxes 
+      })
+
+      }).then((response) => response.json())
+      .then((responseJson) => {
+        console.log(responseJson);
+          if(responseJson){
+          alert("Successfully Submitted, Please wait for confirmation of your request"); 
+          this.props.navigation.navigate('RequestBatch');
+          }
+          else
+           Alert.alert('Request','Error Requesting. Please check your inputs');
+      }).catch((error) => {
+          console.error(error); 
+      });
+    
   }
   _save = () => {
     Alert.alert(
@@ -171,8 +223,11 @@ class screenRequestSetQty extends Component{
                 onPress: () => console.log('Cancel Pressed'),
                 style: 'cancel',
               },
-              {text: 'Submit', onPress: () => {alert("Successfully Submitted, Please wait for confirmation of your request"); 
-              this.props.navigation.navigate('RequestBatch')}},
+              {
+                text: 'Submit'
+                , onPress:() => this.insertReq() 
+            
+            },
             ],
             {cancelable: false},
           );}}></Ionicons>}
@@ -194,7 +249,7 @@ class screenRequestSetQty extends Component{
                 }
                 submitText ='Save'
                 onSubmit={text =>{
-                    this._updateCheck(this.state.item,text)  
+                    this._updateCheck(this.state.item,text,this.state.item.suppid)  
                     this.setState({modalVisible:false});
                 }
                 }
@@ -213,13 +268,13 @@ class screenRequestSetQty extends Component{
             }}
           /> 
         <ScrollView> 
-          {/* <Text>{JSON.stringify(this.state.checkboxes)}</Text> */}
+          {/* <Text>{JSON.stringify(this.state.supplierData)}</Text> */}
             
           <FlatList
           data={ this.state.checkboxes.filter( (item) => {
             return item.value === true})}
           renderItem={({ item }) => (
-            <TouchableOpacity   style={{
+            <View   style={{
               flex: 1,
               alignItems: 'center',
               paddingLeft:30,
@@ -228,15 +283,54 @@ class screenRequestSetQty extends Component{
               borderWidth: 0.5,
               borderRadius:10,
               margin:5,
-              backgroundColor:item.isCritical}} 
-              onPress={() => {
-                this.setModalVisible(true,item);
-              }} >
+              backgroundColor:item.isCritical}}  >
             <Text button style={styles.name}>{item.STOCK_NAME} - {item.qty}</Text>
             <Text style={styles.info}> {item.STOCK_KEY_UNIT}</Text>
             <Text style={styles.description}>Critical Level for this stock is <Text style={{fontWeight:'bold'}}>{item.STOCK_CRITICAL_LEVEL}</Text></Text>
             <Text style={{fontSize:11, fontWeight:'bold',marginBottom:10}}>Remaining Stocks is {item.STOCK_QUANTITY}</Text> 
-            </TouchableOpacity>
+            <View style={{flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom:5}}>
+                        <View style={{flex:1}}> 
+                  
+              <Picker
+                  selectedValue={item.suppid} 
+                  style={{
+                    backgroundColor:'#3af',
+                    color:'white',
+                    margin:5,
+                    height:35}} 
+                    onValueChange={(itemValue, itemIndex) => 
+                    this._updateCheck(item,item.qty,itemValue)  
+                  }>
+ 
+                  {this.state.supplierData.map((val)=> ( 
+                      <Picker.Item  label={val.SUP_NAME} value={val.SUP_ID} 
+                      
+                      /> )
+                      )}
+                </Picker>
+              </View>
+            <View style={{flex:1}}>
+                <TouchableOpacity
+                style={{
+                  backgroundColor:"pink",
+                  justifyContent: 'center', 
+                  alignItems:'center',
+                  backgroundColor:'orange',
+                  height:35 }}
+                onPress={() => {
+                
+                this.setModalVisible(true,item);
+                }}>
+                <Text style={{fontSize:15, color:'white'}}>Quantity</Text>
+              </TouchableOpacity>
+              </View>
+              
+            </View>
+            </View>
           )}
           //Setting the number of column
           numColumns={1}

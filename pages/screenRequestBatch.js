@@ -46,9 +46,10 @@ class screenRequestBatch extends Component{
           ,username: await AsyncStorage.getItem('username')
           ,fullname: await AsyncStorage.getItem('fullname')
           ,userrole: await AsyncStorage.getItem('userrole')
-      })
+      });
     }
-    
+     
+
   _getStocks = () =>{ 
     this.setState({refreshing: true}); 
     fetch('http://'+appConfig._api+'/ims/SparePartsList.php')

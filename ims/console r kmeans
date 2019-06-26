@@ -1,0 +1,967 @@
+df <- read.csv("~/utilities.csv")
+> str(df)
+'data.frame':	20 obs. of  3 variables:
+ $ Company: Factor w/ 20 levels "3 System","Althea Retreading Corp",..: 10 19 6 16 17 3 14 13 9 15 ...
+ $ Days   : num  6 5.5 7.5 2.8 6 0.5 0.5 0.3 8.1 0.6 ...
+ $ Cost   : num  950 1200 1100 15000 6500 6500 1350 20000 11500 1500 ...
+> head(df)
+             Company Days  Cost
+1      Jecara/Miguel  6.0   950
+2             Tastic  5.5  1200
+3   Denso/Nick Store  7.5  1100
+4  Rodrigo Hydraulic  2.8 15000
+5 Ronnie Metal Works  6.0  6500
+6               Casa  0.5  6500
+> pairs(df)
+> aggregate(df[,-c(1,1)],list(member),mean)
+Error in aggregate.data.frame(df[, -c(1, 1)], list(member), mean) : 
+  object 'member' not found
+> # Cluster membership
+> member = cutree(df.hclust,3)
+Error in nrow(tree$merge) : object 'df.hclust' not found
+> table(member)
+Error in table(member) : object 'member' not found
+> # Normalize 
+> z = df[,-c(1,1)]
+> means = apply(z,2,mean)
+> sds = apply(z,2,sd)
+> nor = scale(z,center=means,scale=sds)
+> ##calculate distance matrix (default is Euclidean distance)
+> distance = dist(nor)
+> # Hierarchical agglomerative clustering using default complete linkage 
+> df.hclust = hclust(distance)
+> plot(df.hclust)
+> plot(df.hclust,labels=df$Company,main='Default from hclust')
+> plot(df.hclust,hang=-1)
+> # Hierarchical agglomerative clustering using "average" linkage 
+> df.hclust<-hclust(distance,method="average")
+> plot(df.hclust,hang=-1)
+> # Cluster membership
+> member = cutree(df.hclust,3)
+> table(member)
+member
+1 2 3 
+9 3 8 
+> #Characterizing clusters 
+> aggregate(nor,list(member),mean)
+  Group.1       Days       Cost
+1       1  1.0019105 -0.2095487
+2       2 -0.7652449  1.9347262
+3       3 -0.8401825 -0.4897800
+> aggregate(df[,-c(1,1)],list(member),mean)
+  Group.1     Days      Cost
+1       1 6.211111  4627.778
+2       2 1.200000 17666.667
+3       3 0.987500  2923.750
+> 
+> clust <- aggregate(df[,-c(1,1)],list(member),mean)
+> clust
+  Group.1     Days      Cost
+1       1 6.211111  4627.778
+2       2 1.200000 17666.667
+3       3 0.987500  2923.750
+> a1 <- subset(df, df$Cost)
+Error in subset.data.frame(df, df$Cost) : 'subset' must be logical
+> a1 <- subset(df, df$Cost == clust)
+> a1
+[1] Company Days    Cost   
+<0 rows> (or 0-length row.names)
+> clust[1]
+  Group.1
+1       1
+2       2
+3       3
+> clust[1][1]
+  Group.1
+1       1
+2       2
+3       3
+> clust[][1]
+  Group.1
+1       1
+2       2
+3       3
+> clust[2][1]
+      Days
+1 6.211111
+2 1.200000
+3 0.987500
+> clust[3][1]
+       Cost
+1  4627.778
+2 17666.667
+3  2923.750
+> clust[3][3]
+Error in `[.data.frame`(clust[3], 3) : undefined columns selected
+> clust[3][3][1]
+Error in `[.data.frame`(clust[3], 3) : undefined columns selected
+> clust[1][3]
+Error in `[.data.frame`(clust[1], 3) : undefined columns selected
+> clust[1][1]
+  Group.1
+1       1
+2       2
+3       3
+> clust[1][2]
+Error in `[.data.frame`(clust[1], 2) : undefined columns selected
+> clust[1,2]
+[1] 6.211111
+> clust[1,2]
+[1] 6.211111
+> a1 <- subset(df, df$Cost == clust[1,1])
+> a1
+[1] Company Days    Cost   
+<0 rows> (or 0-length row.names)
+> a1 <- subset(df, df$Cost == clust[1,2])
+> a1
+[1] Company Days    Cost   
+<0 rows> (or 0-length row.names)
+> a1 <- subset(df, df$Cost == clust[,2])
+Warning message:
+In df$Cost == clust[, 2] :
+  longer object length is not a multiple of shorter object length
+> clust[,2]
+[1] 6.211111 1.200000 0.987500
+> clust[2,2]
+[1] 1.2
+> a1 <- subset(df, df$Cost == clust[2,2])
+> a1
+[1] Company Days    Cost   
+<0 rows> (or 0-length row.names)
+> install.packages("dplyr")
+WARNING: Rtools is required to build R packages but is not currently installed. Please download and install the appropriate version of Rtools before proceeding:
+
+https://cran.rstudio.com/bin/windows/Rtools/
+Installing package into ‘C:/Users/mikaa/Documents/R/win-library/3.5’
+(as ‘lib’ is unspecified)
+trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.5/dplyr_0.8.0.1.zip'
+Content type 'application/zip' length 3247373 bytes (3.1 MB)
+downloaded 3.1 MB
+
+package ‘dplyr’ successfully unpacked and MD5 sums checked
+
+The downloaded binary packages are in
+	C:\Users\mikaa\AppData\Local\Temp\Rtmp80vGxg\downloaded_packages
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> summary(df)
+                   Company        Days            Cost      
+ 3 System              : 1   Min.   :0.300   Min.   :   40  
+ Althea Retreading Corp: 1   1st Qu.:0.500   1st Qu.: 1175  
+ Casa                  : 1   Median :2.700   Median : 4500  
+ Comglasco             : 1   Mean   :3.370   Mean   : 5902  
+ CRC Enterprises       : 1   3rd Qu.:5.925   3rd Qu.: 8125  
+ Denso/Nick Store      : 1   Max.   :8.100   Max.   :20000  
+ (Other)               :14                                  
+> km <- (df, 3)
+Error: unexpected ',' in "km <- (df,"
+> km <- kmeans(df, 3)
+Error in do_one(nmeth) : NA/NaN/Inf in foreign function call (arg 1)
+In addition: Warning message:
+In storage.mode(x) <- "double" : NAs introduced by coercion
+> km <- kmeans(df, 2)
+Error in do_one(nmeth) : NA/NaN/Inf in foreign function call (arg 1)
+In addition: Warning message:
+In storage.mode(x) <- "double" : NAs introduced by coercion
+> rescale_df <- df % > %
++     mutate(days_scal = scale(Days),
++            cost_scal = scale(Cost)) % > %
++     select(-c(Days, Cost))
+Error in df % > % mutate(days_scal = scale(Days), cost_scal = scale(Cost)) % > %  : 
+  could not find function "% > %"
+> library(magrittr)
+> library("magrittr")
+> rescale_df <- df % > %
++     mutate(days_scal = scale(Days),
++            cost_scal = scale(Cost)) % > %
++     select(-c(Days, Cost))
+Error in df % > % mutate(days_scal = scale(Days), cost_scal = scale(Cost)) % > %  : 
+  could not find function "% > %"
+> rescale_df <- df %>%
++     mutate(days_scal = scale(Days),
++            cost_scal = scale(Cost)) %>%
++     select(-c(Days, Cost))
+> km <- kmeans(df, 3)
+Error in do_one(nmeth) : NA/NaN/Inf in foreign function call (arg 1)
+In addition: Warning message:
+In storage.mode(x) <- "double" : NAs introduced by coercion
+> df
+                  Company Days  Cost
+1           Jecara/Miguel  6.0   950
+2                  Tastic  5.5  1200
+3        Denso/Nick Store  7.5  1100
+4       Rodrigo Hydraulic  2.8 15000
+5      Ronnie Metal Works  6.0  6500
+6                    Casa  0.5  6500
+7                Punzalan  0.5  1350
+8         Nick Metal Work  0.3 20000
+9                  Jecara  8.1 11500
+10                Rodrigo  0.6  1500
+11         MJ Auto Supply  1.2  1800
+12            Magnificent  2.6  4500
+13               3 System  4.7  4500
+14                 Harvey  7.6 10000
+15    Surewin Auto Supply  5.9   900
+16 Althea Retreading Corp  4.6  5000
+17 Treat Retreaders/Metro  1.5    40
+18        CRC Enterprises  0.5  7500
+19              Comglasco  0.5   200
+20                Fastech  0.5 18000
+> km <- kmeans(df, 3)
+Error in do_one(nmeth) : NA/NaN/Inf in foreign function call (arg 1)
+In addition: Warning message:
+In storage.mode(x) <- "double" : NAs introduced by coercion
+> z = df[,-c(1,1)]
+> z
+   Days  Cost
+1   6.0   950
+2   5.5  1200
+3   7.5  1100
+4   2.8 15000
+5   6.0  6500
+6   0.5  6500
+7   0.5  1350
+8   0.3 20000
+9   8.1 11500
+10  0.6  1500
+11  1.2  1800
+12  2.6  4500
+13  4.7  4500
+14  7.6 10000
+15  5.9   900
+16  4.6  5000
+17  1.5    40
+18  0.5  7500
+19  0.5   200
+20  0.5 18000
+> km <- kmeans(z, 3)
+> km
+K-means clustering with 3 clusters of sizes 8, 3, 9
+
+Cluster means:
+      Days      Cost
+1 4.325000  7000.000
+2 1.200000 17666.667
+3 3.244444  1004.444
+
+Clustering vector:
+ [1] 3 3 3 2 1 1 3 2 1 3 3 1 1 1 3 1 3 1 3 2
+
+Within cluster sum of squares by cluster:
+[1] 46500060 12666671  2636489
+ (between_SS / total_SS =  91.2 %)
+
+Available components:
+
+[1] "cluster"      "centers"      "totss"        "withinss"     "tot.withinss"
+[6] "betweenss"    "size"         "iter"         "ifault"      
+> install.packages("animation")
+WARNING: Rtools is required to build R packages but is not currently installed. Please download and install the appropriate version of Rtools before proceeding:
+
+https://cran.rstudio.com/bin/windows/Rtools/
+Installing package into ‘C:/Users/mikaa/Documents/R/win-library/3.5’
+(as ‘lib’ is unspecified)
+also installing the dependency ‘magick’
+
+trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.5/magick_2.0.zip'
+Content type 'application/zip' length 20147214 bytes (19.2 MB)
+downloaded 19.2 MB
+
+trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.5/animation_2.6.zip'
+Content type 'application/zip' length 545146 bytes (532 KB)
+downloaded 532 KB
+
+package ‘magick’ successfully unpacked and MD5 sums checked
+package ‘animation’ successfully unpacked and MD5 sums checked
+
+The downloaded binary packages are in
+	C:\Users\mikaa\AppData\Local\Temp\Rtmp80vGxg\downloaded_packages
+> 
+> library(animation)
+> set.seed(2345)
+> library(animation)
+> kmeans.ani(rescale_df[2:3], 3)
+> pc_cluster <-kmeans(rescale_df, 5)
+Error in do_one(nmeth) : NA/NaN/Inf in foreign function call (arg 1)
+In addition: Warning message:
+In storage.mode(x) <- "double" : NAs introduced by coercion
+> rescale_df
+                  Company  days_scal   cost_scal
+1           Jecara/Miguel  0.9274627 -0.81436765
+2                  Tastic  0.7511390 -0.77325458
+3        Denso/Nick Store  1.4564338 -0.78969981
+4       Rodrigo Hydraulic -0.2010090  1.49618676
+5      Ronnie Metal Works  0.9274627  0.09834246
+6                    Casa -1.0120981  0.09834246
+7                Punzalan -1.0120981 -0.74858674
+8         Nick Metal Work -1.0826276  2.31844812
+9                  Jecara  1.6680223  0.92060381
+10                Rodrigo -0.9768333 -0.72391890
+11         MJ Auto Supply -0.7652449 -0.67458322
+12            Magnificent -0.2715385 -0.23056208
+13               3 System  0.4690211 -0.23056208
+14                 Harvey  1.4916986  0.67392541
+15    Surewin Auto Supply  0.8921980 -0.82259026
+16 Althea Retreading Corp  0.4337563 -0.14833595
+17 Treat Retreaders/Metro -0.6594507 -0.96401921
+18        CRC Enterprises -1.0120981  0.26279473
+19              Comglasco -1.0120981 -0.93770685
+20                Fastech -1.0120981  1.98954357
+> pc_cluster <-kmeans(rescale_df[,-c(1,1)], 5)
+> pc_cluster
+K-means clustering with 5 clusters of sizes 3, 5, 3, 2, 7
+
+Cluster means:
+   days_scal   cost_scal
+1 -0.7652449  0.04352503
+2 -0.8851450 -0.80976298
+3 -0.7652449  1.93472615
+4  1.5798604  0.79726461
+5  0.8367819 -0.49720969
+
+Clustering vector:
+ [1] 5 5 5 3 5 1 2 3 4 2 2 1 5 4 5 5 2 1 2 3
+
+Within cluster sum of squares by cluster:
+[1] 0.49182688 0.17550482 0.82259466 0.04597014 1.62420695
+ (between_SS / total_SS =  91.7 %)
+
+Available components:
+
+[1] "cluster"      "centers"      "totss"        "withinss"     "tot.withinss"
+[6] "betweenss"    "size"         "iter"         "ifault"      
+> km
+K-means clustering with 3 clusters of sizes 8, 3, 9
+
+Cluster means:
+      Days      Cost
+1 4.325000  7000.000
+2 1.200000 17666.667
+3 3.244444  1004.444
+
+Clustering vector:
+ [1] 3 3 3 2 1 1 3 2 1 3 3 1 1 1 3 1 3 1 3 2
+
+Within cluster sum of squares by cluster:
+[1] 46500060 12666671  2636489
+ (between_SS / total_SS =  91.2 %)
+
+Available components:
+
+[1] "cluster"      "centers"      "totss"        "withinss"     "tot.withinss"
+[6] "betweenss"    "size"         "iter"         "ifault"      
+> z$cluster
+NULL
+> km$cluster
+ [1] 3 3 3 2 1 1 3 2 1 3 3 1 1 1 3 1 3 1 3 2
+> a1 <- subset(df, km$cluster == 1)
+> a1
+                  Company Days  Cost
+5      Ronnie Metal Works  6.0  6500
+6                    Casa  0.5  6500
+9                  Jecara  8.1 11500
+12            Magnificent  2.6  4500
+13               3 System  4.7  4500
+14                 Harvey  7.6 10000
+16 Althea Retreading Corp  4.6  5000
+18        CRC Enterprises  0.5  7500
+> a2 <- subset(df, km$cluster == 2)
+> a3 <- subset(df, km$cluster == 3)
+> a2
+             Company Days  Cost
+4  Rodrigo Hydraulic  2.8 15000
+8    Nick Metal Work  0.3 20000
+20           Fastech  0.5 18000
+> a3
+                  Company Days Cost
+1           Jecara/Miguel  6.0  950
+2                  Tastic  5.5 1200
+3        Denso/Nick Store  7.5 1100
+7                Punzalan  0.5 1350
+10                Rodrigo  0.6 1500
+11         MJ Auto Supply  1.2 1800
+15    Surewin Auto Supply  5.9  900
+17 Treat Retreaders/Metro  1.5   40
+19              Comglasco  0.5  200
+> dfa <-read.csv("~/utilities.csv")
+> km2 <- kmeans(dfa[,-c(1,1)],3)
+> km2
+K-means clustering with 3 clusters of sizes 8, 9, 3
+
+Cluster means:
+      Days      Cost
+1 4.325000  7000.000
+2 3.244444  1004.444
+3 1.200000 17666.667
+
+Clustering vector:
+ [1] 2 2 2 3 1 1 2 3 1 2 2 1 1 1 2 1 2 1 2 3
+
+Within cluster sum of squares by cluster:
+[1] 46500060  2636489 12666671
+ (between_SS / total_SS =  91.2 %)
+
+Available components:
+
+[1] "cluster"      "centers"      "totss"        "withinss"     "tot.withinss"
+[6] "betweenss"    "size"         "iter"         "ifault"      
+> b1 <-subset(dfa, km2$cluster)
+Error in subset.data.frame(dfa, km2$cluster) : 'subset' must be logical
+> b1 <-subset(dfa, km2$cluster == 1)
+> b1
+                  Company Days  Cost
+5      Ronnie Metal Works  6.0  6500
+6                    Casa  0.5  6500
+9                  Jecara  8.1 11500
+12            Magnificent  2.6  4500
+13               3 System  4.7  4500
+14                 Harvey  7.6 10000
+16 Althea Retreading Corp  4.6  5000
+18        CRC Enterprises  0.5  7500
+> library(ggplot2)
+> ggplot(df, aes(x = Days, y = Cost)) +
++     geom_point()
+> # Scatter plot 
+> plot(df$Cost~ df$Days, data = df)
+> with(df,text(df$Cost ~ df$Days, labels=df$Company,pos=4))
+> ggplot(df, aes(x = Days, y = Cost)) +
++     geom_point()
+> # Scatter plot 
+> plot(df$Cost~ df$Days, data = df)
+> with(df,text(df$Cost ~ df$Days, labels=df$Company,pos=4))
+> # Scree Plot
+> wss <- (nrow(nor)-1)*sum(apply(nor,2,var))
+> for (i in 2:20) wss[i] <- sum(kmeans(nor, centers=i)$withinss)
+Error: number of cluster centres must lie between 1 and nrow(x)
+> plot(1:20, wss, type="b", xlab="Number of Clusters", ylab="Within groups sum of squares") 
+Error in xy.coords(x, y, xlabel, ylabel, log) : 
+  'x' and 'y' lengths differ
+> install.packages("NbClust")
+WARNING: Rtools is required to build R packages but is not currently installed. Please download and install the appropriate version of Rtools before proceeding:
+
+https://cran.rstudio.com/bin/windows/Rtools/
+Installing package into ‘C:/Users/mikaa/Documents/R/win-library/3.5’
+(as ‘lib’ is unspecified)
+trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.5/NbClust_3.0.zip'
+Content type 'application/zip' length 122117 bytes (119 KB)
+downloaded 119 KB
+
+package ‘NbClust’ successfully unpacked and MD5 sums checked
+
+The downloaded binary packages are in
+	C:\Users\mikaa\AppData\Local\Temp\Rtmp80vGxg\downloaded_packages
+> library(NbClust)
+> dfa_scale <- scale(dfa)
+Error in colMeans(x, na.rm = TRUE) : 'x' must be numeric
+> z_scale <- scale(z)
+> z_scale
+            Days        Cost
+ [1,]  0.9274627 -0.81436765
+ [2,]  0.7511390 -0.77325458
+ [3,]  1.4564338 -0.78969981
+ [4,] -0.2010090  1.49618676
+ [5,]  0.9274627  0.09834246
+ [6,] -1.0120981  0.09834246
+ [7,] -1.0120981 -0.74858674
+ [8,] -1.0826276  2.31844812
+ [9,]  1.6680223  0.92060381
+[10,] -0.9768333 -0.72391890
+[11,] -0.7652449 -0.67458322
+[12,] -0.2715385 -0.23056208
+[13,]  0.4690211 -0.23056208
+[14,]  1.4916986  0.67392541
+[15,]  0.8921980 -0.82259026
+[16,]  0.4337563 -0.14833595
+[17,] -0.6594507 -0.96401921
+[18,] -1.0120981  0.26279473
+[19,] -1.0120981 -0.93770685
+[20,] -1.0120981  1.98954357
+attr(,"scaled:center")
+   Days    Cost 
+   3.37 5902.00 
+attr(,"scaled:scale")
+       Days        Cost 
+   2.835694 6080.791673 
+> fviz_nbclust(z_scale, kmeans, method = "wss") +
++     geom_vline(xintercept = 4, linetype = 2)+
++     labs(subtitle = "Elbow method")
+Error in fviz_nbclust(z_scale, kmeans, method = "wss") : 
+  could not find function "fviz_nbclust"
+> noClust <-  fviz_nbclust(df, kmeans, method = "wss") +
++     geom_vline(xintercept = 4, linetype = 2)+
++     labs(subtitle = "Elbow method")
+Error in fviz_nbclust(df, kmeans, method = "wss") : 
+  could not find function "fviz_nbclust"
+> noClust <- NbClust(x, distance = "euclidean", min.nc=2, max.nc=10, 
++                    method = "ward.D", index = "all")
+Error in NbClust(x, distance = "euclidean", min.nc = 2, max.nc = 10, method = "ward.D",  : 
+  object 'x' not found
+> noClust <- NbClust(z, distance = "euclidean", min.nc=2, max.nc=10, 
++                    method = "ward.D", index = "all")
+*** : The Hubert index is a graphical method of determining the number of clusters.
+                In the plot of Hubert index, we seek a significant knee that corresponds to a 
+                significant increase of the value of the measure i.e the significant peak in Hubert
+                index second differences plot. 
+ 
+*** : The D index is a graphical method of determining the number of clusters. 
+                In the plot of D index, we seek a significant knee (the significant peak in Dindex
+                second differences plot) that corresponds to a significant increase of the value of
+                the measure. 
+ 
+******************************************************************* 
+* Among all indices:                                                
+* 1 proposed 2 as the best number of clusters 
+* 7 proposed 3 as the best number of clusters 
+* 3 proposed 4 as the best number of clusters 
+* 2 proposed 5 as the best number of clusters 
+* 2 proposed 6 as the best number of clusters 
+* 1 proposed 7 as the best number of clusters 
+* 7 proposed 10 as the best number of clusters 
+
+                   ***** Conclusion *****                            
+ 
+* According to the majority rule, the best number of clusters is  3 
+ 
+ 
+******************************************************************* 
+Warning messages:
+1: In pf(beale, pp, df2) : NaNs produced
+2: In pf(beale, pp, df2) : NaNs produced
+> 
+> noClust <- NbClust(z, distance = "euclidean", min.nc=2, max.nc=10, 
++                    method = "kmeans", index = "all")
+*** : The Hubert index is a graphical method of determining the number of clusters.
+                In the plot of Hubert index, we seek a significant knee that corresponds to a 
+                significant increase of the value of the measure i.e the significant peak in Hubert
+                index second differences plot. 
+ 
+*** : The D index is a graphical method of determining the number of clusters. 
+                In the plot of D index, we seek a significant knee (the significant peak in Dindex
+                second differences plot) that corresponds to a significant increase of the value of
+                the measure. 
+ 
+******************************************************************* 
+* Among all indices:                                                
+* 6 proposed 2 as the best number of clusters 
+* 3 proposed 3 as the best number of clusters 
+* 6 proposed 4 as the best number of clusters 
+* 1 proposed 5 as the best number of clusters 
+* 3 proposed 6 as the best number of clusters 
+* 4 proposed 8 as the best number of clusters 
+* 1 proposed 9 as the best number of clusters 
+
+                   ***** Conclusion *****                            
+ 
+* According to the majority rule, the best number of clusters is  2 
+ 
+ 
+******************************************************************* 
+Warning messages:
+1: In pf(beale, pp, df2) : NaNs produced
+2: In pf(beale, pp, df2) : NaNs produced
+> noClust <- NbClust(z, distance = "euclidean", min.nc=2, max.nc=10, 
++                    method = "kmeans", index = "elbow")
+Error in NbClust(z, distance = "euclidean", min.nc = 2, max.nc = 10, method = "kmeans",  : 
+  invalid clustering index
+> noClust <- NbClust(z, distance = "euclidean", min.nc=2, max.nc=10, 
++                    method = "kmeans", index = "all")
+*** : The Hubert index is a graphical method of determining the number of clusters.
+                In the plot of Hubert index, we seek a significant knee that corresponds to a 
+                significant increase of the value of the measure i.e the significant peak in Hubert
+                index second differences plot. 
+ 
+*** : The D index is a graphical method of determining the number of clusters. 
+                In the plot of D index, we seek a significant knee (the significant peak in Dindex
+                second differences plot) that corresponds to a significant increase of the value of
+                the measure. 
+ 
+******************************************************************* 
+* Among all indices:                                                
+* 6 proposed 2 as the best number of clusters 
+* 3 proposed 3 as the best number of clusters 
+* 6 proposed 4 as the best number of clusters 
+* 1 proposed 5 as the best number of clusters 
+* 3 proposed 6 as the best number of clusters 
+* 4 proposed 8 as the best number of clusters 
+* 1 proposed 9 as the best number of clusters 
+
+                   ***** Conclusion *****                            
+ 
+* According to the majority rule, the best number of clusters is  2 
+ 
+ 
+******************************************************************* 
+Warning messages:
+1: In pf(beale, pp, df2) : NaNs produced
+2: In pf(beale, pp, df2) : NaNs produced
+> noClust <- NbClust(z, distance = "euclidean", min.nc=2, max.nc=10, 
++                    method = "kmeans", index = "ccc")
+> noClust <- NbClust(z, distance = "euclidean", min.nc=2, max.nc=10, 
++                    method = "kmeans", index = "all")
+*** : The Hubert index is a graphical method of determining the number of clusters.
+                In the plot of Hubert index, we seek a significant knee that corresponds to a 
+                significant increase of the value of the measure i.e the significant peak in Hubert
+                index second differences plot. 
+ 
+*** : The D index is a graphical method of determining the number of clusters. 
+                In the plot of D index, we seek a significant knee (the significant peak in Dindex
+                second differences plot) that corresponds to a significant increase of the value of
+                the measure. 
+ 
+******************************************************************* 
+* Among all indices:                                                
+* 6 proposed 2 as the best number of clusters 
+* 3 proposed 3 as the best number of clusters 
+* 6 proposed 4 as the best number of clusters 
+* 1 proposed 5 as the best number of clusters 
+* 3 proposed 6 as the best number of clusters 
+* 4 proposed 8 as the best number of clusters 
+* 1 proposed 9 as the best number of clusters 
+
+                   ***** Conclusion *****                            
+ 
+* According to the majority rule, the best number of clusters is  2 
+ 
+ 
+******************************************************************* 
+Warning messages:
+1: In pf(beale, pp, df2) : NaNs produced
+2: In pf(beale, pp, df2) : NaNs produced
+> km2 <- kmeans(dfa[,-c(1,1)],1)
+> km2 <- kmeans(dfa[,-c(1,1)],2)
+> km2
+K-means clustering with 2 clusters of sizes 15, 5
+
+Cluster means:
+      Days      Cost
+1 3.206667  2902.667
+2 3.860000 14900.000
+
+Clustering vector:
+ [1] 1 1 1 2 1 1 1 2 2 1 1 1 1 2 1 1 1 1 1 2
+
+Within cluster sum of squares by cluster:
+[1] 91584587 71200057
+ (between_SS / total_SS =  76.8 %)
+
+Available components:
+
+[1] "cluster"      "centers"      "totss"        "withinss"     "tot.withinss"
+[6] "betweenss"    "size"         "iter"         "ifault"      
+> b1 <-subset(dfa, km2$cluster == 1)
+> b1
+                  Company Days Cost
+1           Jecara/Miguel  6.0  950
+2                  Tastic  5.5 1200
+3        Denso/Nick Store  7.5 1100
+5      Ronnie Metal Works  6.0 6500
+6                    Casa  0.5 6500
+7                Punzalan  0.5 1350
+10                Rodrigo  0.6 1500
+11         MJ Auto Supply  1.2 1800
+12            Magnificent  2.6 4500
+13               3 System  4.7 4500
+15    Surewin Auto Supply  5.9  900
+16 Althea Retreading Corp  4.6 5000
+17 Treat Retreaders/Metro  1.5   40
+18        CRC Enterprises  0.5 7500
+19              Comglasco  0.5  200
+> b2 <-subset(dfa, km2$cluster == 2)
+> b2
+             Company Days  Cost
+4  Rodrigo Hydraulic  2.8 15000
+8    Nick Metal Work  0.3 20000
+9             Jecara  8.1 11500
+14            Harvey  7.6 10000
+20           Fastech  0.5 18000
+> b1
+                  Company Days Cost
+1           Jecara/Miguel  6.0  950
+2                  Tastic  5.5 1200
+3        Denso/Nick Store  7.5 1100
+5      Ronnie Metal Works  6.0 6500
+6                    Casa  0.5 6500
+7                Punzalan  0.5 1350
+10                Rodrigo  0.6 1500
+11         MJ Auto Supply  1.2 1800
+12            Magnificent  2.6 4500
+13               3 System  4.7 4500
+15    Surewin Auto Supply  5.9  900
+16 Althea Retreading Corp  4.6 5000
+17 Treat Retreaders/Metro  1.5   40
+18        CRC Enterprises  0.5 7500
+19              Comglasco  0.5  200
+> # Scatter plot 
+> plot(df$Cost~ df$Days, data = df)
+> with(df,text(df$Cost ~ df$Days, labels=df$Company,pos=4))
+> # Scatter plot 
+> plot(df$Cost~ df$Days, data = df)
+> with(df,text(df$Cost ~ df$Days, labels=df$Company,pos=4))
+> rescale_df
+                  Company  days_scal   cost_scal
+1           Jecara/Miguel  0.9274627 -0.81436765
+2                  Tastic  0.7511390 -0.77325458
+3        Denso/Nick Store  1.4564338 -0.78969981
+4       Rodrigo Hydraulic -0.2010090  1.49618676
+5      Ronnie Metal Works  0.9274627  0.09834246
+6                    Casa -1.0120981  0.09834246
+7                Punzalan -1.0120981 -0.74858674
+8         Nick Metal Work -1.0826276  2.31844812
+9                  Jecara  1.6680223  0.92060381
+10                Rodrigo -0.9768333 -0.72391890
+11         MJ Auto Supply -0.7652449 -0.67458322
+12            Magnificent -0.2715385 -0.23056208
+13               3 System  0.4690211 -0.23056208
+14                 Harvey  1.4916986  0.67392541
+15    Surewin Auto Supply  0.8921980 -0.82259026
+16 Althea Retreading Corp  0.4337563 -0.14833595
+17 Treat Retreaders/Metro -0.6594507 -0.96401921
+18        CRC Enterprises -1.0120981  0.26279473
+19              Comglasco -1.0120981 -0.93770685
+20                Fastech -1.0120981  1.98954357
+> library(dplyr)PATH <-"https://raw.githubusercontent.com/thomaspernet/data_csv_r/master/data/Computers.csv"
+Error: unexpected symbol in "library(dplyr)PATH"
+> df <- read.csv(PATH) % > %
++     select(-c(X, cd, multi, premium))
+Error in read.csv(PATH) % > % select(-c(X, cd, multi, premium)) : 
+  could not find function "% > %"
+> glimpse(df)
+Observations: 20
+Variables: 3
+$ Company <fct> Jecara/Miguel, Tastic, Denso/Nick Store, Rodrigo Hydraulic, Ron...
+$ Days    <dbl> 6.0, 5.5, 7.5, 2.8, 6.0, 0.5, 0.5, 0.3, 8.1, 0.6, 1.2, 2.6, 4.7...
+$ Cost    <dbl> 950, 1200, 1100, 15000, 6500, 6500, 1350, 20000, 11500, 1500, 1...
+> rescale_df
+                  Company  days_scal   cost_scal
+1           Jecara/Miguel  0.9274627 -0.81436765
+2                  Tastic  0.7511390 -0.77325458
+3        Denso/Nick Store  1.4564338 -0.78969981
+4       Rodrigo Hydraulic -0.2010090  1.49618676
+5      Ronnie Metal Works  0.9274627  0.09834246
+6                    Casa -1.0120981  0.09834246
+7                Punzalan -1.0120981 -0.74858674
+8         Nick Metal Work -1.0826276  2.31844812
+9                  Jecara  1.6680223  0.92060381
+10                Rodrigo -0.9768333 -0.72391890
+11         MJ Auto Supply -0.7652449 -0.67458322
+12            Magnificent -0.2715385 -0.23056208
+13               3 System  0.4690211 -0.23056208
+14                 Harvey  1.4916986  0.67392541
+15    Surewin Auto Supply  0.8921980 -0.82259026
+16 Althea Retreading Corp  0.4337563 -0.14833595
+17 Treat Retreaders/Metro -0.6594507 -0.96401921
+18        CRC Enterprises -1.0120981  0.26279473
+19              Comglasco -1.0120981 -0.93770685
+20                Fastech -1.0120981  1.98954357
+> > rescale_df <- df %>%
+Error: unexpected '>' in ">"
+>     mutate(days_scal = scale(Days),
++      cost_scal = scale(Cost))
+Error in scale(Days) : object 'Days' not found
+> > rescale_df <- dfa %>%
+Error: unexpected '>' in ">"
+>     mutate(days_scal = scale(Days),
++      cost_scal = scale(Cost))
+Error in scale(Days) : object 'Days' not found
+> > rescale_df <- dfa %>%
+Error: unexpected '>' in ">"
+>     mutate(days_scal = scale(Days),
++      cost_scal = scale(Cost))  %>%
++     select(-c(Days, Cost))
+Error in scale(Days) : object 'Days' not found
+> rescale_df <- df % > %
++     mutate(days_scal = scale(Days),
++            cost_scal = scale(Cost)) % > %
++     select(-c(Days, Cost))
+Error in df % > % mutate(days_scal = scale(Days), cost_scal = scale(Cost)) % > %  : 
+  could not find function "% > %"
+> df <- read.csv("~/utilities.csv")
+>     select(-c(Days, Cost))
+Error in select(-c(Days, Cost)) : object 'Days' not found
+> df <- read.csv("~/utilities.csv")
+> rescale_df <- df % > %
++     mutate(days_scal = scale(Days),
++            cost_scal = scale(Cost)) % > %
++     select(-c(Days, Cost))
+Error in df % > % mutate(days_scal = scale(Days), cost_scal = scale(Cost)) % > %  : 
+  could not find function "% > %"
+> rescale_df <- df %>%
++     mutate(days_scal = scale(Days),
++            cost_scal = scale(Cost)) %>%
++     select(-c(Days, Cost))
+> rescale_df
+                  Company  days_scal   cost_scal
+1           Jecara/Miguel  0.9274627 -0.81436765
+2                  Tastic  0.7511390 -0.77325458
+3        Denso/Nick Store  1.4564338 -0.78969981
+4       Rodrigo Hydraulic -0.2010090  1.49618676
+5      Ronnie Metal Works  0.9274627  0.09834246
+6                    Casa -1.0120981  0.09834246
+7                Punzalan -1.0120981 -0.74858674
+8         Nick Metal Work -1.0826276  2.31844812
+9                  Jecara  1.6680223  0.92060381
+10                Rodrigo -0.9768333 -0.72391890
+11         MJ Auto Supply -0.7652449 -0.67458322
+12            Magnificent -0.2715385 -0.23056208
+13               3 System  0.4690211 -0.23056208
+14                 Harvey  1.4916986  0.67392541
+15    Surewin Auto Supply  0.8921980 -0.82259026
+16 Althea Retreading Corp  0.4337563 -0.14833595
+17 Treat Retreaders/Metro -0.6594507 -0.96401921
+18        CRC Enterprises -1.0120981  0.26279473
+19              Comglasco -1.0120981 -0.93770685
+20                Fastech -1.0120981  1.98954357
+> pc_cluster <-kmeans(rescale_df, 5)
+Error in do_one(nmeth) : NA/NaN/Inf in foreign function call (arg 1)
+In addition: Warning message:
+In storage.mode(x) <- "double" : NAs introduced by coercion
+> a1
+                  Company Days  Cost
+5      Ronnie Metal Works  6.0  6500
+6                    Casa  0.5  6500
+9                  Jecara  8.1 11500
+12            Magnificent  2.6  4500
+13               3 System  4.7  4500
+14                 Harvey  7.6 10000
+16 Althea Retreading Corp  4.6  5000
+18        CRC Enterprises  0.5  7500
+> a2
+             Company Days  Cost
+4  Rodrigo Hydraulic  2.8 15000
+8    Nick Metal Work  0.3 20000
+20           Fastech  0.5 18000
+> a3
+                  Company Days Cost
+1           Jecara/Miguel  6.0  950
+2                  Tastic  5.5 1200
+3        Denso/Nick Store  7.5 1100
+7                Punzalan  0.5 1350
+10                Rodrigo  0.6 1500
+11         MJ Auto Supply  1.2 1800
+15    Surewin Auto Supply  5.9  900
+17 Treat Retreaders/Metro  1.5   40
+19              Comglasco  0.5  200
+> km2
+K-means clustering with 2 clusters of sizes 15, 5
+
+Cluster means:
+      Days      Cost
+1 3.206667  2902.667
+2 3.860000 14900.000
+
+Clustering vector:
+ [1] 1 1 1 2 1 1 1 2 2 1 1 1 1 2 1 1 1 1 1 2
+
+Within cluster sum of squares by cluster:
+[1] 91584587 71200057
+ (between_SS / total_SS =  76.8 %)
+
+Available components:
+
+[1] "cluster"      "centers"      "totss"        "withinss"     "tot.withinss"
+[6] "betweenss"    "size"         "iter"         "ifault"      
+> b1
+                  Company Days Cost
+1           Jecara/Miguel  6.0  950
+2                  Tastic  5.5 1200
+3        Denso/Nick Store  7.5 1100
+5      Ronnie Metal Works  6.0 6500
+6                    Casa  0.5 6500
+7                Punzalan  0.5 1350
+10                Rodrigo  0.6 1500
+11         MJ Auto Supply  1.2 1800
+12            Magnificent  2.6 4500
+13               3 System  4.7 4500
+15    Surewin Auto Supply  5.9  900
+16 Althea Retreading Corp  4.6 5000
+17 Treat Retreaders/Metro  1.5   40
+18        CRC Enterprises  0.5 7500
+19              Comglasco  0.5  200
+> b2
+             Company Days  Cost
+4  Rodrigo Hydraulic  2.8 15000
+8    Nick Metal Work  0.3 20000
+9             Jecara  8.1 11500
+14            Harvey  7.6 10000
+20           Fastech  0.5 18000
+> km
+K-means clustering with 3 clusters of sizes 8, 3, 9
+
+Cluster means:
+      Days      Cost
+1 4.325000  7000.000
+2 1.200000 17666.667
+3 3.244444  1004.444
+
+Clustering vector:
+ [1] 3 3 3 2 1 1 3 2 1 3 3 1 1 1 3 1 3 1 3 2
+
+Within cluster sum of squares by cluster:
+[1] 46500060 12666671  2636489
+ (between_SS / total_SS =  91.2 %)
+
+Available components:
+
+[1] "cluster"      "centers"      "totss"        "withinss"     "tot.withinss"
+[6] "betweenss"    "size"         "iter"         "ifault"      
+> rescale_dfa <- dfa %>%
++     mutate(days_scal = scale(Days),
++            cost_scal = scale(Cost)) %>%
++     select(-c(Days, Cost))
+> rescale_dfa
+                  Company  days_scal   cost_scal
+1           Jecara/Miguel  0.9274627 -0.81436765
+2                  Tastic  0.7511390 -0.77325458
+3        Denso/Nick Store  1.4564338 -0.78969981
+4       Rodrigo Hydraulic -0.2010090  1.49618676
+5      Ronnie Metal Works  0.9274627  0.09834246
+6                    Casa -1.0120981  0.09834246
+7                Punzalan -1.0120981 -0.74858674
+8         Nick Metal Work -1.0826276  2.31844812
+9                  Jecara  1.6680223  0.92060381
+10                Rodrigo -0.9768333 -0.72391890
+11         MJ Auto Supply -0.7652449 -0.67458322
+12            Magnificent -0.2715385 -0.23056208
+13               3 System  0.4690211 -0.23056208
+14                 Harvey  1.4916986  0.67392541
+15    Surewin Auto Supply  0.8921980 -0.82259026
+16 Althea Retreading Corp  0.4337563 -0.14833595
+17 Treat Retreaders/Metro -0.6594507 -0.96401921
+18        CRC Enterprises -1.0120981  0.26279473
+19              Comglasco -1.0120981 -0.93770685
+20                Fastech -1.0120981  1.98954357
+> set.seed(2345)
+> library(animation)
+> kmeans.ani(rescale_dfa[2:3], 3)
+> dfa
+                  Company Days  Cost
+1           Jecara/Miguel  6.0   950
+2                  Tastic  5.5  1200
+3        Denso/Nick Store  7.5  1100
+4       Rodrigo Hydraulic  2.8 15000
+5      Ronnie Metal Works  6.0  6500
+6                    Casa  0.5  6500
+7                Punzalan  0.5  1350
+8         Nick Metal Work  0.3 20000
+9                  Jecara  8.1 11500
+10                Rodrigo  0.6  1500
+11         MJ Auto Supply  1.2  1800
+12            Magnificent  2.6  4500
+13               3 System  4.7  4500
+14                 Harvey  7.6 10000
+15    Surewin Auto Supply  5.9   900
+16 Althea Retreading Corp  4.6  5000
+17 Treat Retreaders/Metro  1.5    40
+18        CRC Enterprises  0.5  7500
+19              Comglasco  0.5   200
+20                Fastech  0.5 18000

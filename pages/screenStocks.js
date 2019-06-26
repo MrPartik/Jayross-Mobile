@@ -153,14 +153,15 @@ class screen_Stocks extends Component{
                   flex: 1,
                   backgroundColor:"pink",
                   justifyContent: 'flex-end', 
+                  alignItems:'center', 
                   width:'90%', 
                   padding:20,
-                  alignItems:'center', 
                   marginBottom:75,
                   borderRadius:20
                   }}>
-                <Text style={{fontWeight:'bold',fontSize:15}}>Close</Text>
+                  <Text style={{fontWeight:'bold',fontSize:15}}>Close</Text>
               </TouchableOpacity > 
+              
           </View>
         </Modal> 
       <View >

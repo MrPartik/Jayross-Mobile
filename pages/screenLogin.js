@@ -18,7 +18,7 @@ import {
 } from 'react-native'; 
 
 import {withNavigation} from 'react-navigation';
-import * as appCofig from '../appConfig';
+import * as appConfig from '../appConfig';
   
 
 class screenLogin extends Component{ 
@@ -52,7 +52,7 @@ class screenLogin extends Component{
          
     const{tboxUserName}=this.state; 
     const{tboxPass}=this.state;  
-    fetch('http://'+appCofig._api+'/ims/login.php',{
+    fetch('http://'+appConfig._api+'/ims/login.php',{
         method:'post'
         ,headers:{
             'Accept':'application/json'
